@@ -1,0 +1,564 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+# Descriptive analysis--
+# Importing libraries
+```{r}
+#for decision tree
+install.packages("party")
+library("party")
+# for linear models
+install.packages("class")
+library("class")
+install.packages("gmodels")
+library("gmodels")
+```
+# Import dataset
+```{r}
+Market_data <- read.csv("C:/Users/DELL/Documents/archive (1)/marketing_data.CSV")
+```
+# Rename columns
+```{r}
+names(Market_data) <- c('Id', 'Birthyear', 'EducationLevel', 'MaritialStatus', 'HouseholdIncome', 'noOfKids', 
+                       'noOfTeens', 'DtEnrolled', 'LastPurchase', 'amtWines', 'amtFruits',
+                       'amtMeats', 'amtFish', 'amtSweet','amtGold','noDealPurchases','noWebPurchases','noCataloguePurchases','noStorePurchases','noWebVisitMonth','campaignAcpt3','campaignAcpt4','campaignAcpt5','campaignAcpt1','campaignAcpt2','offerAccepted','Complaint','Country')
+names(Market_data)
+```
+# View command is used to check the dataset
+```{r}
+View(Market_data)
+```
+
+# To check the top rows of data use head command
+```{r}
+head(Market_data)
+```
+# to check the type of each attribute
+```{r}
+str(Market_data)
+```
+# To check the 5 number summary (to check min,max,mean,median,1st Quartile,3rd Quartile)
+```{r}
+summary(Market_data)
+```
+
+# to check the NA values in data
+```{r}
+sum(is.na(Market_data))
+```
+
+# to check the correlation
+```{r}
+round(cor(Market_data[sapply(Market_data, is.numeric)]),2)
+```
+
+```{r}
+Data_var <-  round(sapply(Market_data,var))
+Data_var
+```
+
+```{r}
+Market_data$HouseholdIncome <- gsub("[$]","",Market_data$HouseholdIncome)
+head(Market_data$HouseholdIncome)
+```
+
+```{r}
+Market_data$HouseholdIncome <- as.numeric(Market_data$HouseholdIncome)
+class(Market_data$HouseholdIncome)
+Market_data[is.na(Market_data$HouseholdIncome),"HouseholdIncome"] <- mean(Market_data$HouseholdIncome,na.rm = TRUE)
+```
+
+# checking the distribution of variable under consideration--
+
+```{r}
+hist(Market_data$noDealPurchases, col = "green", xlab = "noDealsPurchases", ylab = "Frequency", main = "histogram")
+```
+
+```{r}
+hist(Market_data$noCataloguePurchases, col = "blue", xlab = "noCataloguePurchase", ylab = "Frequency", main = "histogram")
+```
+
+```{r}
+hist(Market_data$noStorePurchases, col = "yellow", xlab = "noStorePurchases", ylab = "Frequency", main = "histogram")
+```
+
+```{r}
+hist(Market_data$noWebPurchases, col = "red", xlab = "noWebPurchases", ylab = "Frequency", main = "histogram")
+```
+
+```{r}
+hist(Market_data$noWebVisitMonth, col = "purple", xlab = "noWebVisitMonth", ylab = "Frequency", main = "histogram")
+```
+
+# detecting ouliers in the data--
+
+```{r}
+boxplot(Market_data$amtGold, col = "blue", xlab = "amount for gold", ylab = "data$amtGold" )
+```
+
+# removing an outlier from gold.
+```{r}
+Q1 <- quantile(Market_data$amtGold, .25)
+Q3 <- quantile(Market_data$amtGold, .75)
+IQR <- IQR(Market_data$amtGold)
+
+```
+
+```{r}
+no_outliers <- subset(Market_data, Market_data$amtGold> (Q1 - 1.5*IQR) & Market_data$amtGold < (Q3 + 1.5*IQR))
+```
+
+```{r}
+dim(no_outliers)
+```
+
+```{r}
+boxplot(Market_data$amtGold, col = "blue", xlab = " Amount for gold", ylab = "data$amtGold", outline = FALSE  )
+```
+
+
+
+
+
+
+```{r}
+boxplot(Market_data$amtFish, col = "blue", xlab = "amount for fish", ylab = "data$amtfish" )
+```
+
+```{r}
+boxplot(Market_data$amtWines, col = "blue", xlab = "amount for wine", ylab = "data$amtwine"  )
+```
+
+```{r}
+boxplot(Market_data$amtFruits, col = "blue", xlab = "Amount of Fruits", ylab = "data$amtFruits"  )
+```
+
+```{r}
+boxplot(Market_data$amtMeats, col = "blue", xlab = "Amount for Meats", ylab = "data$amtMeats"  )
+```
+
+# Remove outliers from amount for meats
+```{r}
+Q1 <- quantile(Market_data$amtMeats, .25)
+Q3 <- quantile(Market_data$amtMeats, .75)
+IQR <- IQR(Market_data$amtMeats)
+
+```
+
+```{r}
+no_outliers <- subset(Market_data, Market_data$amtMeats> (Q1 - 1.5*IQR) & Market_data$amtMeats < (Q3 + 1.5*IQR))
+```
+
+```{r}
+dim(no_outliers)
+```
+
+```{r}
+boxplot(Market_data$amtMeats, col = "blue", xlab = " Amount for Meats", ylab = "data$amtMeatsr", outline = FALSE  )
+```
+
+```{r}
+boxplot(Market_data$amtSweet, col = "blue", xlab = "Amount of sweet", ylab = "data$amtsweet"  )
+```
+
+```{r}
+boxplot(Market_data$Birthyear, col = "blue", xlab = "Birthyear", ylab = "data$Birthyear" )
+```
+
+# Remove outliers from birthyear
+```{r}
+Q1 <- quantile(Market_data$Birthyear, .25)
+Q3 <- quantile(Market_data$Birthyear, .75)
+IQR <- IQR(Market_data$Birthyear)
+
+```
+
+```{r}
+no_outliers <- subset(Market_data, Market_data$amtBirthyear> (Q1 - 1.5*IQR) & Market_data$Birthyear < (Q3 + 1.5*IQR))
+```
+
+```{r}
+dim(no_outliers)
+```
+
+```{r}
+boxplot(Market_data$Birthyear, col = "blue", xlab = " Birthyear", ylab = "data$Birthyear", outline = FALSE  )
+```
+
+# creating testing and traning sets for checking model accuracy--
+
+```{r}
+train_index <- sample(1:nrow(Market_data) ,0.7*nrow(Market_data))
+train.set <- Market_data[train_index,]
+View(train.set)
+```
+
+```{r}
+test.set <- Market_data[-train_index,]
+View(test.set)
+```
+
+# checking logistic model accuracy--
+
+```{r}
+glm_model <- glm(offerAccepted ~ campaignAcpt3 +  campaignAcpt2 +  campaignAcpt4 +  campaignAcpt5 +  campaignAcpt1,data = train.set, family = "binomial")
+summary(glm_model)
+```
+
+```{r}
+predicted<-predict(glm_model,test.set,type = "response")
+predicted_class <- round(predicted)
+predicted_class
+```
+
+```{r}
+conf_matrix <- table(actual = test.set$offerAccepted, predicted = predicted_class)
+conf_matrix
+accuracy <- sum(diag(conf_matrix))/sum(conf_matrix)
+accuracy
+```
+```{r}
+install.packages("caret")
+library(caret)
+fourfoldplot(conf_matrix, color = c("cyan", "pink"),
+             conf.level = 0, margin = 1, main = "Confusion Matrix")
+```
+
+# creating KNN model
+#to fix the model
+```{r}
+set.seed(1)
+```
+
+```{r}
+train_index= sample(1 : nrow(Market_data),0.7*nrow(Market_data))
+train_index
+```
+```{r}
+train_set=Market_data[train_index,]
+train_set
+```
+
+```{r}
+head(train_set)
+View(train_set)
+```
+```{r}
+nrow(test_set)
+```
+
+```{r}
+test_set=Market_data[-train_index,]
+test_set
+```
+
+```{r}
+head(test_set)
+View(test_set)
+```
+
+
+```{r}
+indep_train_set = train_set[-26]
+indep_train_set
+```
+```{r}
+indep_test_set = test_set[-26]
+indep_test_set
+```
+
+
+```{r}
+target_train_set= train_set$offerAccepted
+target_train_set
+```
+
+```{r}
+target_test_set= test_set$offerAccepted
+target_test_set
+```
+
+```{r}
+indep_test_set <-  subset(indep_test_set, select = -c(3,4,5,8,27))
+indep_test_set
+indep_train_set <- subset(indep_train_set,select= -c(3,4,5,8,27))
+indep_train_set
+
+```
+
+
+```{r}
+pred_target_test_set=knn(indep_train_set,indep_test_set,target_train_set,k=20)
+pred_target_test_set
+```
+
+```{r}
+table(target_test_set,pred_target_test_set)
+```
+```{r}
+conf_matrix <- table(target= target_test_set, predicted = pred_target_test_set)
+conf_matrix
+fourfoldplot(conf_matrix, color = c("cyan", "pink"),
+             conf.level = 0, margin = 1, main = "Confusion Matrix")
+```
+
+```{r}
+accuracy <- sum(diag(conf_matrix))/sum(conf_matrix)
+accuracy
+```
+
+
+# creating decision tree model--
+
+```{r}
+market_ctree_MODEL <- ctree(offerAccepted ~campaignAcpt3 +  campaignAcpt2 +  campaignAcpt4 +  campaignAcpt5 +  campaignAcpt1, data = train.set)
+market_ctree_MODEL
+plot(market_ctree_MODEL,type='simple')
+```
+
+```{r}
+market_ctree_prediction <- predict(market_ctree_MODEL, test.set)
+head(market_ctree_prediction)
+```
+
+```{r}
+conf_matrix <- table(market_ctree_prediction, test.set$offerAccepted)
+conf_matrix
+accuracy <- sum(diag(conf_matrix))/sum(conf_matrix)
+accuracy
+```
+
+# clustering
+```{r}
+
+  data <- subset(Market_data, select = c("amtFruits","amtMeats","amtGold","amtFish","amtSweet","amtWines"))
+Kmeans_data = kmeans(data,6)# number of clusters
+Kmeans_data
+
+  cluster_product <- table(Market_data$EducationLevel,Kmeans_data$cluster)
+plot(cluster_product, ylab = "Cluster_Number", xlab = "Education Level")
+```
+
+
+
+#random forest
+```{r}
+install.packages("randomForest")
+library(randomForest)
+```
+```{r}
+ Data <- subset(Market_data, select = c("offerAccepted","campaignAcpt3","campaignAcpt2","campaignAcpt4","campaignAcpt5","campaignAcpt1"))
+```
+
+```{r}
+Response.forest <- randomForest(offerAccepted~., data = Data)
+```
+
+```{r}
+predicted1 <-predict(Response.forest,test.set,type = "response")
+predicted_class1 <- round(predicted1)
+predicted_class1
+```
+
+```{r}
+conf_matrixR <- table(actual = test.set$offerAccepted, predicted1 = predicted_class1)
+conf_matrixR
+accuracyR <- sum(diag(conf_matrixR))/sum(conf_matrixR)
+accuracyR
+importance(Response.forest, type = 2)
+fourfoldplot(conf_matrixR, color = c("cyan", "pink"),
+               conf.level = 0, margin = 1, main = "Confusion Matrix")
+```
+#feature selection
+```{r}
+install.packages("MASS")
+library(MASS)
+install.packages("leaps")
+library(leaps)
+```
+we will split the dataset to 70% of training and 30% % of test sets.we want to make sure that the training set and test set do not have any comman data points
+```{r}
+train_index<-sample(nrow(data),floor(nrow(data)*0.7))
+train_index
+train<-Market_data[train_index,]
+train
+test<-Market_data[-train_index,]
+test
+```
+```{r}
+nrow(train)
+```
+
+```{r}
+nrow(test)
+```
+#lets build a multiple linear regresion model to predict the price variable . lets use campaignAcpt3 ,  campaignAcpt2 , campaignAcpt4 , campaignAcpt5, campaignAcpt1 as independent variables .we will train our model on the training set and do the prediction on the test sets.
+```{r}
+model_mlr<-lm(offerAccepted~campaignAcpt3 +  campaignAcpt2 +  campaignAcpt4 +  campaignAcpt5 +  campaignAcpt1,data=Market_data)
+model_mlr
+prediction <- predict(model_mlr, interval="prediction", newdata=test)
+prediction
+head(prediction[,"fit"])
+head(Market_data$offerAccepted)
+```
+lets see the errors and plot them on a histogram
+```{r}
+errors<- prediction[,'fit']- Market_data$offerAccepted
+hist(errors)
+```
+lets compute the root men square error and finf the % of cases with less than 25% error
+```{r}
+sum(prediction[,"fit"] -Market_data$offerAccepted)^2/nrow(test)
+```
+
+
+```{r}
+rmse<- sqrt(sum(prediction[,'fit']-Market_data$offerAccepted )^2/nrow(test))
+rel_change<-1-((Market_data$offerAccepted - abs(errors))/Market_data$offerAccepted )
+pred25<- table(rel_change<0.25)["TRUE"] / nrow(test)
+paste("RMSE:",rmse)
+paste("PRED(25):" , pred25)
+```
+
+```{r}
+full<-lm(offerAccepted~campaignAcpt3 +  campaignAcpt2 +  campaignAcpt4 +  campaignAcpt5 +  campaignAcpt1,data=Market_data)
+null<-lm(offerAccepted~ 1,data=Market_data)
+stepF<- stepAIC(null,scope=list(lower=null,upper=full),direction='forward', trace=TRUE)
+summary(stepF)
+```
+
+```{r}
+full<-lm(offerAccepted~campaignAcpt3 +  campaignAcpt2 +  campaignAcpt4 +  campaignAcpt5 +  campaignAcpt1,data=Market_data)
+stepB<- stepAIC(full,direction='backward', trace=TRUE)
+summary(stepB)
+```
+
+```{r echo= TRUE}
+full<-lm(Complaint ~amtWines+amtFruits+amtMeats+amtFish+amtSweet+amtGold+noDealPurchases+noWebPurchases+noCataloguePurchases+noStorePurchases+noWebVisitMonth,data=Market_data)
+null<-lm(offerAccepted~ 1,data=Market_data)
+stepF<- stepAIC(null,scope=list(lower=null,upper=full),direction='forward', trace=TRUE)
+summary(stepF)
+```
+
+
+```{r echo= TRUE}
+full<-lm(Complaint ~amtWines+amtFruits+amtMeats+amtFish+amtSweet+amtGold+noDealPurchases+noWebPurchases+noCataloguePurchases+noStorePurchases+noWebVisitMonth,data=Market_data)
+stepB<- stepAIC(full,direction='backward', trace=TRUE)
+summary(stepB)
+```
+we  end up using all the variables.
+now lets see the best combination of the 5 variables
+```{r}
+#for 2 optimal solutions
+subsets<-regsubsets(offerAccepted~campaignAcpt3 +  campaignAcpt2 +  campaignAcpt4 +  campaignAcpt5 +  campaignAcpt1,data=Market_data,
+                    nbest=1)
+sub.sum<-summary(subsets)
+as.data.frame(sub.sum$outmat)
+```
+
+```{r}
+#for 1 optimal solution
+subsets<-regsubsets(offerAccepted~campaignAcpt3 +  campaignAcpt2 +  campaignAcpt4 +  campaignAcpt5 +  campaignAcpt1,data=Market_data,
+                    nbest=2)
+sub.sum<-summary(subsets)
+as.data.frame(sub.sum$outmat)
+```
+
+#TimeSeries
+
+```{r}
+head(Market_data)
+```
+
+```{r}
+#ts time series
+class(Market_data$Birthyear)
+```
+
+```{r}
+Market_data$Birthyear<- ts(Market_data$Birthyear)
+Market_data$Birthyear
+```
+```{r}
+class(Market_data$Birthyear)
+```
+```{r}
+View(Market_data$Birthyear)
+```
+
+```{r}
+start(Market_data$Birthyear)
+```
+
+```{r}
+end(Market_data$Birthyear)
+```
+```{r}
+frequency(Market_data$Birthyear)
+```
+
+```{r}
+summary(Market_data$Birthyear)
+```
+
+```{r}
+plot(Market_data$Birthyear,
+     xlab='number of customers',
+     ylab='Birthyear',
+     main='customers Birthyear',
+     col =3)
+```
+```{r}
+plot(Market_data$Birthyear)
+abline(lm(Market_data$Birthyear ~ time(Market_data$Birthyear)))
+```
+
+box plot across months will give us a sence on seasonal effect
+```{r}
+boxplot(Market_data$Birthyear - cycle(Market_data$Birthyear))
+```
+we know that we need to address two issue 
+before we test stationary series
+one we need to remove unequal variance
+we do this using lof of the series
+```{r}
+plot(log(Market_data$Birthyear))
+
+
+```
+
+ we need to address the trend component 
+ we do this by taking difference of
+```{r}
+plot(diff(log(Market_data$Birthyear)))
+```
+ 
+#we see that the series is stationary enough to do any kind of the time series modelling 
+#ARIMA
+#pdq
+```{r}
+acf(Market_data$Birthyear)
+acf(diff(log(Market_data$Birthyear))) # determine the value of q
+#value of q=1
+```
+
+```{r}
+pacf(diff(log(Market_data$Birthyear))) # determin e the value of p 
+# p= 11
+```
